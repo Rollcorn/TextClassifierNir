@@ -10,12 +10,13 @@ import zipfile
 def load_data():
     data = []
     try:
-        with open('./../resources/data/qas/combined_dataset_with_responses_and_classification.json', 'r') as file:
+        with open('resources/data/qas/combined_dataset_with_responses_and_classification.json', 'r') as file:
             for line in file:
                 try:
                     data.append(json.loads(line.strip()))
                 except json.JSONDecodeError:
                     continue
+            print("Data loaded")
     except Exception as e:
         print(f"Error reading JSON file: {e}")
         return []
@@ -28,7 +29,7 @@ class BertClassificator:
                  data_path='./../resources/qas/combined_dataset_with_responses_and_classification.json',
                  model_name='bert-base-multilingual-cased',
                  num_labels=3,
-                 model_dir='./model'
+                 model_dir='model'
                  ):
         self.data_path = data_path
         self.model_name = model_name
@@ -43,6 +44,7 @@ class BertClassificator:
             self.data = load_data()
             self.train_dataloader, self.val_dataloader = self.prepare_datasets()
             self.train()
+        print("BertClassificator initialized.")
 
     def load_model(self):
         model_path = os.path.join(self.model_dir, 'pytorch_model.bin')
@@ -52,6 +54,7 @@ class BertClassificator:
             self.tokenizer = BertTokenizer.from_pretrained(tokenizer_path)
             print("Model and tokenizer loaded.")
             return True
+        print("Model and tokenizer not found.")
         return False
 
     def save_model(self):
@@ -78,7 +81,7 @@ class BertClassificator:
             )
             input_ids.append(encoded_dict['input_ids'])
             attention_masks.append(encoded_dict['attention_mask'])
-
+        print("Data preprocessed.")
         return torch.cat(input_ids, dim=0), torch.cat(attention_masks, dim=0)
 
     def prepare_datasets(self):
@@ -92,12 +95,12 @@ class BertClassificator:
         train_dataset, val_dataset = random_split(TensorDataset(input_ids, attention_masks, labels), [train_size, val_size])
         train_dataloader = DataLoader(train_dataset, batch_size=16, shuffle=True)
         val_dataloader = DataLoader(val_dataset, batch_size=16, shuffle=False)
-
+        print("Datasets prepared.")
         return train_dataloader, val_dataloader
 
     def train(self, epochs=4, learning_rate=2e-5):
         optimizer = AdamW(self.model.parameters(), lr=learning_rate)
-
+        print("Start training")
         for epoch in range(epochs):
             self.model.train()
             total_loss = 0
@@ -146,5 +149,5 @@ class BertClassificator:
             outputs = self.model(input_ids, attention_mask=attention_masks)
             logits = outputs.logits
             prediction = torch.argmax(logits, dim=1).item()
-
+        print("Prediction made: ", prediction)
         return prediction

@@ -1,10 +1,14 @@
 from fastapi import FastAPI, HTTPException, APIRouter
 from pydantic import BaseModel
-from service.classificator_model import BertClassificator
+from service.bert_classificator import BertClassificator
 from service.feedback_service import FeedbackService
+from service.logist_classificator import LogistAnswerClassifier
+
 
 app = FastAPI()
 classifier = BertClassificator()
+logist_classifier = LogistAnswerClassifier()
+
 feedback_service = FeedbackService()
 
 
@@ -23,6 +27,7 @@ predict_router = APIRouter()
 
 @predict_router.post("/predict")
 def predict(request: TextRequest):
+    print("Request: ", request.text)
     try:
         prediction = classifier.predict(request.text)
         label = "Neither" if prediction == 0 else "Yes" if prediction == 1 else "No"
@@ -31,8 +36,20 @@ def predict(request: TextRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@predict_router.post("/logist/predict")
+def predict(request: TextRequest):
+    print("Request: ", request.text)
+    try:
+        prediction = logist_classifier.predict(request.text)
+        label = "Neither" if prediction == 0 else "Yes" if prediction == 1 else "No"
+        return {"text": request.text, "prediction": prediction, "label": label}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @predict_router.post("/feedback")
 def feedback(request: FeedbackRequest):
+    print("Request: ", request.text)
     try:
         feedback_service.save_feedback(request.text, request.model_label, request.user_label)
         return {"status": "feedback received"}
