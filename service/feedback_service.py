@@ -3,7 +3,7 @@ import json
 
 
 class FeedbackService:
-    def __init__(self, feedback_file='./../output/feedback.json'):
+    def __init__(self, feedback_file='output/feedback.json'):
         self.feedback_file = feedback_file
         os.makedirs(os.path.dirname(feedback_file), exist_ok=True)
 
