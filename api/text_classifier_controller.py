@@ -15,7 +15,7 @@ feedback_service = FeedbackService()
 predict_router = APIRouter()
 
 
-@predict_router.post("/predict")
+@predict_router.post("/bert")
 def predict(request: TextRequest):
     """
     Endpoint for predicting the class of a text using the BERT classifier.
@@ -39,7 +39,7 @@ def predict(request: TextRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@predict_router.post("/logist/predict")
+@predict_router.post("/logist")
 def predict(request: TextRequest):
     """
     Endpoint for predicting the class of a text using the logistic regression classifier.
@@ -85,7 +85,7 @@ def feedback(request: FeedbackRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-app.include_router(predict_router)
+app.include_router(predict_router, prefix="/predict")
 
 if __name__ == '__main__':
     import uvicorn
