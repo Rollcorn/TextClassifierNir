@@ -1,5 +1,7 @@
 from fastapi import FastAPI, HTTPException, APIRouter
-from pydantic import BaseModel
+
+from api.requests.feedback_request import FeedbackRequest
+from api.requests.text_Request import TextRequest
 from service.bert_classificator import BertClassificator
 from service.feedback_service import FeedbackService
 from service.logist_classificator import LogistAnswerClassifier
@@ -10,23 +12,24 @@ classifier = BertClassificator()
 logist_classifier = LogistAnswerClassifier()
 
 feedback_service = FeedbackService()
-
-
-class TextRequest(BaseModel):
-    text: str
-
-
-class FeedbackRequest(BaseModel):
-    text: str
-    model_label: int
-    user_label: int
-
-
 predict_router = APIRouter()
 
 
 @predict_router.post("/predict")
 def predict(request: TextRequest):
+    """
+    Endpoint for predicting the class of a text using the BERT classifier.
+
+    This endpoint accepts a POST request with a JSON body containing a 'text' field. It returns a JSON response
+    containing the input text, the predicted class, and the label corresponding to the predicted class.
+
+    Args:
+        request (TextRequest): The request body containing the text to be classified.
+
+    Returns:
+        dict: A dictionary containing the input text, the predicted class, and the label corresponding to the predicted
+        class.
+    """
     print("Request: ", request.text)
     try:
         prediction = classifier.predict(request.text)
@@ -38,6 +41,19 @@ def predict(request: TextRequest):
 
 @predict_router.post("/logist/predict")
 def predict(request: TextRequest):
+    """
+    Endpoint for predicting the class of a text using the logistic regression classifier.
+
+    This endpoint accepts a POST request with a JSON body containing a 'text' field. It returns a JSON response
+    containing the input text, the predicted class, and the label corresponding to the predicted class.
+
+    Args:
+        request (TextRequest): The request body containing the text to be classified.
+
+    Returns:
+        dict: A dictionary containing the input text, the predicted class, and the label corresponding to the predicted
+        class.
+    """
     print("Request: ", request.text)
     try:
         prediction = logist_classifier.predict(request.text)
@@ -49,6 +65,18 @@ def predict(request: TextRequest):
 
 @predict_router.post("/feedback")
 def feedback(request: FeedbackRequest):
+    """
+    Endpoint for saving feedback data.
+
+    This endpoint accepts a POST request with a JSON body containing a 'text' field, a 'model_label' field, and a
+    'user_label' field. It returns a JSON response containing a status message.
+
+    Args:
+        request (FeedbackRequest): The request body containing the feedback data.
+
+    Returns:
+        dict: A dictionary containing a status message.
+    """
     print("Request: ", request.text)
     try:
         feedback_service.save_feedback(request.text, request.model_label, request.user_label)
